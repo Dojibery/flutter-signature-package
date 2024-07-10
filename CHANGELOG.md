@@ -1,3 +1,3 @@
-## 0.0.2
+## 1.0.3
 
-* TODO: Customizable Icons
+* TODO: Stroke width, pan color, export a png with transparent background
