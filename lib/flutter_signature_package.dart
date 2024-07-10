@@ -1,44 +1,79 @@
-library signature_package;
-
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-class DragState extends ChangeNotifier {
-  List<Offset> drawingPoints = [];
-  List<List<Offset>> undoDrawingPoints = [];
-  List<List<Offset>> redoDrawingPoints = [];
-  bool isDrawing = true; // By default, enable drawing
+class SignatureCanvas extends StatefulWidget {
+  final Color backgroundColor;
+  final SignatureCanvasController controller;
+  final Function(Uint8List)? onSave;
+
+  const SignatureCanvas({
+    Key? key,
+    this.backgroundColor = Colors.white,
+    required this.controller,
+    this.onSave,
+  }) : super(key: key);
+
+  @override
+  _SignatureCanvasState createState() => _SignatureCanvasState();
+}
+
+class _SignatureCanvasState extends State<SignatureCanvas> {
+  late List<Offset> drawingPoints;
+  late List<List<Offset>> undoDrawingPoints;
+  late List<List<Offset>> redoDrawingPoints;
+
+  @override
+  void initState() {
+    super.initState();
+    drawingPoints = [];
+    undoDrawingPoints = [];
+    redoDrawingPoints = [];
+    // Attach controller's functions directly
+    widget.controller.addDrawingPoint = addDrawingPoint;
+    widget.controller.startNewBatch = startNewBatch;
+    widget.controller.undo = undo;
+    widget.controller.redo = redo;
+    widget.controller.clearAll = clearAll;
+    widget.controller.exportDrawing = _exportDrawing;
+  }
 
   void addDrawingPoint(Offset point) {
-    drawingPoints.add(point);
-    notifyListeners();
+    setState(() {
+      drawingPoints.add(point);
+    });
   }
 
   void startNewBatch() {
-    _saveDrawingStateForUndo();
-    redoDrawingPoints.clear(); // Clear redo history when starting a new batch
+    setState(() {
+      _saveDrawingStateForUndo();
+      redoDrawingPoints.clear();
+    });
   }
 
   void undo() {
     if (undoDrawingPoints.isNotEmpty) {
-      _saveDrawingStateForRedo();
-      drawingPoints = undoDrawingPoints.removeLast();
-      notifyListeners();
+      setState(() {
+        _saveDrawingStateForRedo();
+        drawingPoints = undoDrawingPoints.removeLast();
+      });
     }
   }
 
   void redo() {
     if (redoDrawingPoints.isNotEmpty) {
-      _saveDrawingStateForUndo();
-      drawingPoints = redoDrawingPoints.removeLast();
-      notifyListeners();
+      setState(() {
+        _saveDrawingStateForUndo();
+        drawingPoints = redoDrawingPoints.removeLast();
+      });
     }
   }
 
   void clearAll() {
-    _saveDrawingStateForUndo();
-    drawingPoints.clear();
-    notifyListeners();
+    setState(() {
+      _saveDrawingStateForUndo();
+      drawingPoints.clear();
+    });
   }
 
   void _saveDrawingStateForUndo() {
@@ -54,51 +89,74 @@ class DragState extends ChangeNotifier {
       redoDrawingPoints.removeAt(0);
     }
   }
-}
 
-class SignatureCanvas extends StatefulWidget {
-  @override
-  _SignatureCanvasState createState() => _SignatureCanvasState();
-}
+  Future<void> _exportDrawing() async {
+    if (widget.onSave != null) {
+      // Create a picture recorder to capture the drawing
+      final recorder = PictureRecorder();
+      final canvas = Canvas(recorder);
 
-class _SignatureCanvasState extends State<SignatureCanvas> {
+      // Draw the signature
+      final paint = Paint()
+        ..color = Colors.black
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.0
+        ..style = PaintingStyle.stroke;
+
+      Path path = Path();
+      path.moveTo(drawingPoints.first.dx, drawingPoints.first.dy);
+      for (int i = 1; i < drawingPoints.length; i++) {
+        path.lineTo(drawingPoints[i].dx, drawingPoints[i].dy);
+      }
+      canvas.drawPath(path, paint);
+
+      // End recording and export to PNG bytes
+      final picture = recorder.endRecording();
+      final img = await picture.toImage(
+        drawingPoints.last.dx.toInt(),
+        drawingPoints.last.dy.toInt(),
+      );
+      final pngBytes = await img.toByteData(format: ImageByteFormat.png);
+      widget.onSave!(pngBytes!.buffer.asUint8List());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<DragState>(
-      builder: (context, dragState, child) {
-        return GestureDetector(
-          onPanStart: (details) {
-            dragState.startNewBatch();
-          },
-          onPanUpdate: (details) {
-            if (dragState.isDrawing) {
-              final RenderBox renderBox = context.findRenderObject() as RenderBox;
-              final point = renderBox.globalToLocal(details.localPosition);
-              dragState.addDrawingPoint(point);
-            }
-          },
+    return GestureDetector(
+      onPanStart: (details) {
+        widget.controller.startNewBatch();
+      },
+      onPanUpdate: (details) {
+        final RenderBox renderBox = context.findRenderObject() as RenderBox;
+        final point = renderBox.globalToLocal(details.localPosition);
+        widget.controller.addDrawingPoint(point);
+      },
+      child: ClipRect(
+        child: Container(
+          color: widget.backgroundColor,
           child: CustomPaint(
             size: Size.infinite,
-            painter: SignaturePainter(drawingPoints: dragState.drawingPoints),
+            painter: SignaturePainter(drawingPoints: drawingPoints),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
 
 class SignaturePainter extends CustomPainter {
   final List<Offset> drawingPoints;
-  final double thresholdDistance;
+  final double thresholdDistance = 200;
 
-  SignaturePainter({required this.drawingPoints, this.thresholdDistance = 200.0});
+  SignaturePainter({required this.drawingPoints});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.black
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.0 // Adjust the stroke width for a more suitable signature appearance
+      ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
 
     if (drawingPoints.isEmpty) return;
@@ -120,5 +178,24 @@ class SignaturePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
+  }
+}
+
+class SignatureCanvasController {
+  late void Function(Offset) addDrawingPoint;
+  late void Function() startNewBatch;
+  late void Function() undo;
+  late void Function() redo;
+  late void Function() clearAll;
+  late Future<void> Function() exportDrawing;
+
+  SignatureCanvasController() {
+    // Initialize functions with empty implementations
+    addDrawingPoint = (Offset point) {};
+    startNewBatch = () {};
+    undo = () {};
+    redo = () {};
+    clearAll = () {};
+    exportDrawing = () async {};
   }
 }

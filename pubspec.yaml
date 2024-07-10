@@ -3,7 +3,7 @@ description: "A Flutter package for drawing signatures on a canvas."
 authors:
   - Vladislav Enev
   - Dojibery LTD
-version: 0.0.2
+version: 1.0.3
 homepage:
 
 environment:
@@ -13,8 +13,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.0.2
-
 
 dev_dependencies:
   flutter_test:

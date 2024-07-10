@@ -5,6 +5,7 @@ A Flutter package for drawing signatures on a canvas. This package provides func
 * Draw smooth lines on a canvas.
 * Undo and redo drawing actions.
 * Clear the canvas.
+* Export the drawn signature as PNG bytes.
 
 ## Installation
 Add the following line to your `pubspec.yaml` dependencies:
@@ -22,7 +23,6 @@ Import the package in your Dart file:
 ```dart
 import 'package:my_signature_package/flutter_signature_package.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(MyApp());
@@ -31,9 +31,7 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DragState(),
-      child: MaterialApp(
+    return MaterialApp(
         home: Scaffold(
           appBar: AppBar(
             title: Text('Signature Canvas Example'),
@@ -47,47 +45,73 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
 ```
 
 ## Explanation 
-* **DragState**: Manages the state of drawing points, undo, redo operations.
 * **SignatureCanvas**: Widget for drawing signatures based on user input.
-* **ActionButtons**: Provides UI buttons for undo, redo, and clear actions.
 
 ## Examples 
 
 ### Basic Usage
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:my_signature_package/flutter_signature_package.dart';
-import 'package:provider/provider.dart';
+class MySignaturePage extends StatelessWidget {
+  final SignatureCanvasController signatureCanvasController = SignatureCanvasController();
 
-void main() {
-  runApp(MyApp());
-}
+  void _handleSave(Uint8List pngBytes) {
+    // Handle the saved PNG bytes here
+    print('Saved PNG bytes: $pngBytes');
+  }
 
-class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DragState(),
-      child: MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            title: Text('Signature Canvas Example'),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(child: SignatureCanvas()),
-                ActionButtons(),
-              ],
-            ),
+    return Scaffold(
+      appBar: AppBar(title: Text('Signature')),
+      body: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SignatureCanvas(
+                  backgroundColor: Colors.white,
+                  controller: signatureCanvasController,
+                  onSave: _handleSave,
+                ),              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.undo),
+                    onPressed: () {
+                      signatureCanvasController.undo();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.redo),
+                    onPressed: () {
+                      signatureCanvasController.redo();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      signatureCanvasController.clearAll();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.save),
+                    onPressed: () {
+                      signatureCanvasController.exportDrawing();
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -96,12 +120,14 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-## Customize Stroke Width
+## Save Signature as PNG Bytes
 
 ```dart
-SignaturePainter(
-  drawingPoints: dragState.drawingPoints,
-  strokeWidth: 4.0, // Adjust stroke width for thicker lines
+SignatureCanvas(
+  onSave: (Uint8List pngBytes) {
+    // Handle the saved PNG bytes here
+    print('Saved PNG bytes: $pngBytes');
+  },
 )
 ```
 
@@ -110,4 +136,5 @@ SignaturePainter(
 Contributions are welcome! Feel free to open issues and pull requests to suggest new features, report bugs, or improve the codebase.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/Dojibery/flutter-signature-package/blob/main/LICENSE)
+file for details.

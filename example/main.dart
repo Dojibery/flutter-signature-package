@@ -1,6 +1,6 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_signature_package/flutter_signature_package.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(MyApp());
@@ -9,47 +9,70 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => DragState(),
-      child: MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(
-            title: Text('Signature Canvas Example'),
-          ),
-          body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(child: SignatureCanvas()),
-                ActionButtons(),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return MaterialApp(
+      home: MySignaturePage(),
     );
   }
 }
 
-class ActionButtons extends StatelessWidget {
+class MySignaturePage extends StatelessWidget {
+  final SignatureCanvasController signatureCanvasController = SignatureCanvasController();
+
+  void _handleSave(Uint8List pngBytes) {
+    // Handle the saved PNG bytes here
+    print('Saved PNG bytes: $pngBytes');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dragState = Provider.of<DragState>(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        IconButton(
-          icon: Icon(Icons.undo),
-          onPressed: dragState.undo,
+    return Scaffold(
+      appBar: AppBar(title: Text('Signature')),
+      body: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: SignatureCanvas(
+                  backgroundColor: Colors.white,
+                  controller: signatureCanvasController,
+                  onSave: _handleSave,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.undo),
+                    onPressed: () {
+                      signatureCanvasController.undo();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.redo),
+                    onPressed: () {
+                      signatureCanvasController.redo();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      signatureCanvasController.clearAll();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.save),
+                    onPressed: () {
+                      signatureCanvasController.exportDrawing();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        IconButton(
-          icon: Icon(Icons.redo),
-          onPressed: dragState.redo,
-        ),
-        IconButton(
-          icon: Icon(Icons.delete),
-          onPressed: dragState.clearAll,
-        ),
-      ],
+      ),
     );
   }
 }
