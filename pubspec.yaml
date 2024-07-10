@@ -1,5 +1,5 @@
-name: signature_package
-description: "A new Flutter package project."
+name: flutter_signature_package
+description: "A Flutter package for drawing signatures on a canvas."
 version: 0.0.1
 homepage:
 

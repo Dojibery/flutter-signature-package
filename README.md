@@ -22,7 +22,7 @@ Replace git://github.com/yourusername/my_signature_package.git with the actual G
 Import the package in your Dart file:
 
 ```dart
-import 'package:my_signature_package/signature_canvas.dart';
+import 'package:my_signature_package/flutter_signature_package.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:my_signature_package/signature_canvas.dart';
+import 'package:my_signature_package/flutter_signature_package.dart';
 import 'package:provider/provider.dart';
 
 void main() {
