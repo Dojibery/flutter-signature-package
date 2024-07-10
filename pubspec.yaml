@@ -1,6 +1,9 @@
 name: flutter_signature_package
 description: "A Flutter package for drawing signatures on a canvas."
-version: 0.0.1
+authors:
+  - Vladislav Enev
+  - Dojibery LTD
+version: 0.0.2
 homepage:
 
 environment:
