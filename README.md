@@ -11,7 +11,7 @@ Add the following line to your `pubspec.yaml` dependencies:
 
 ```yaml
 dependencies:
-  my_signature_package:
+  flutter_signature_package:
     git:
       url: https://github.com/Dojibery/flutter-signature-package
 ```
