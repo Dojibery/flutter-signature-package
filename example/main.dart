@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:signature_package/flutter_signature_package.dart';
+import 'package:flutter_signature_package/flutter_signature_package.dart';
 import 'package:provider/provider.dart';
 
 void main() {
