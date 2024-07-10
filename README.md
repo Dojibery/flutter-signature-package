@@ -13,10 +13,8 @@ Add the following line to your `pubspec.yaml` dependencies:
 dependencies:
   my_signature_package:
     git:
-      url: git://github.com/dojibery.com/signature_package.git
+      url: https://github.com/Dojibery/flutter-signature-package
 ```
-
-Replace git://github.com/yourusername/my_signature_package.git with the actual Git URL of your package if it's hosted on GitHub or another Git repository.
 
 ## Usage
 Import the package in your Dart file:
