@@ -6,12 +6,14 @@ class SignatureCanvas extends StatefulWidget {
   final Color backgroundColor;
   final SignatureCanvasController controller;
   final Function(Uint8List)? onSave;
+  final double? strokeWidth;
 
   const SignatureCanvas({
     Key? key,
     this.backgroundColor = Colors.white,
     required this.controller,
     this.onSave,
+    this.strokeWidth,
   }) : super(key: key);
 
   @override
@@ -123,6 +125,8 @@ class _SignatureCanvasState extends State<SignatureCanvas> {
 
   @override
   Widget build(BuildContext context) {
+    final double? strokeWidth = widget.strokeWidth;
+
     return GestureDetector(
       onPanStart: (details) {
         widget.controller.startNewBatch();
@@ -137,7 +141,7 @@ class _SignatureCanvasState extends State<SignatureCanvas> {
           color: widget.backgroundColor,
           child: CustomPaint(
             size: Size.infinite,
-            painter: SignaturePainter(drawingPoints: drawingPoints),
+            painter: SignaturePainter(strokeWidth: strokeWidth, drawingPoints: drawingPoints),
           ),
         ),
       ),
@@ -147,16 +151,17 @@ class _SignatureCanvasState extends State<SignatureCanvas> {
 
 class SignaturePainter extends CustomPainter {
   final List<Offset> drawingPoints;
+  final double? strokeWidth;
   final double thresholdDistance = 200;
 
-  SignaturePainter({required this.drawingPoints});
+  SignaturePainter({this.strokeWidth, required this.drawingPoints});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.black
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = 2.0
+      ..strokeWidth = strokeWidth != null ? strokeWidth! : 2.0
       ..style = PaintingStyle.stroke;
 
     if (drawingPoints.isEmpty) return;

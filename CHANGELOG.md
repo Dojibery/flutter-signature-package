@@ -1,3 +1,5 @@
-## 1.0.0
+## 1.0.1
 
-* TODO: Stroke width, pan color, export a png with transparent background
+CHANGED:
+- feat: added stroke width as property
+* TODO: Pan color, export a png with transparent background

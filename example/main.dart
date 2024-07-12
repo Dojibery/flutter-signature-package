@@ -38,6 +38,7 @@ class MySignaturePage extends StatelessWidget {
                   backgroundColor: Colors.white,
                   controller: signatureCanvasController,
                   onSave: _handleSave,
+                  strokeWidth: 3.0,
                 ),
               ),
               Row(

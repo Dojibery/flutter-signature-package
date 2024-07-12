@@ -6,6 +6,7 @@ A Flutter package for drawing signatures on a canvas. This package provides func
 * Undo and redo drawing actions.
 * Clear the canvas.
 * Export the drawn signature as PNG bytes.
+* Customize Pan Stroke Width on Canvas
 
 ## Installation
 Add the following line to your `pubspec.yaml` dependencies:
